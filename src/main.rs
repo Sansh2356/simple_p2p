@@ -1,3 +1,6 @@
-fn main() {
-    println!("Hello, world!");
+#![allow(unused)]
+
+#[tokio::main]
+async fn main() {
+    
 }
