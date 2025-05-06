@@ -4,17 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-serde = "1.0.219"
-bitcoin = {version = "0.29.1", features = ["serde","rand"]}
-serde_json = { version = "1.0.64", default-features = false, features = ["alloc"] }
-tokio = {version = "1.44.2",features = ["full","tracing"]}
-tokio-test = "0.4.4"
-roles_logic_sv2 = { git = "https://github.com/demand-open-source/stratum", branch ="ImproveCoinbase", subdirectory = "protocols/v2/roles-logic-sv2"}
-framing_sv2 = { git = "https://github.com/demand-open-source/stratum", branch = "ImproveCoinbase",subdirectory = "protocols/v2/framing_sv2" }
-binary_sv2 = { git = "https://github.com/demand-open-source/stratum", branch ="ImproveCoinbase",subdirectory = "protocols/v2/binary_sv2"}
-noise_sv2 = { git = "https://github.com/demand-open-source/stratum", branch="ImproveCoinbase",subdirectory = "protocols/v2/noise-sv2"}
-codec_sv2 = { git = "https://github.com/demand-open-source/stratum", branch="ImproveCoinbase",subdirectory = "protocols/v2/codec-sv2", features = ["noise_sv2","with_buffer_pool"]}
-sv1_api = { git = "https://github.com/demand-open-source/stratum", branch = "ImproveCoinbase",subdirectory = "protocols/v1"}
+hex = "0.4.3"
+num-bigint = "0.4.6"
+ordered-float = "5.0.0"
+transitive = "1.1.0"
+bitcoin = { git = "https://github.com/braidpool/rust-bitcoin.git" ,features=["serde"]}
+serde = {version = "1.0.219", features=["derive"]}
+serde_json = "1.0.140"
+secp256k1 = "0.30.0"
 
 
 [dev-dependencies]
