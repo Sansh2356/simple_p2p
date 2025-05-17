@@ -124,7 +124,7 @@ pub fn main() {
             "write" => addressbook::write_address_book().unwrap(),
             "read" => addressbook::print_address_book().unwrap(),
             _ => {
-                println!("unrecognized argument")
+                //println!("unrecognized argument")
             }
         }
     }
