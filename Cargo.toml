@@ -26,4 +26,4 @@ sha2 = "0.10.8"
 
 [workspace]
 resolver = "2"
-members = [ "example_client","examples_async","example_1","example_2"]
+members = [ "example_client","examples_async","example_1","example_2","example_3"]
