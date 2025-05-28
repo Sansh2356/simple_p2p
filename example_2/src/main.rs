@@ -33,19 +33,21 @@ struct MyBehaviour {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // let temp_peerId = PeerId::random();
+    const KADPROTOCOLNAME: StreamProtocol = StreamProtocol::new("/braidpool/kad/1.0.0");
+    const IDENTIFYPROTOCOLNAME: StreamProtocol = StreamProtocol::new("/braidpool/identify/1.0.0");
+    let dns_link = "/dns4/french.braidpool.net/tcp";
     let _ = tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .try_init();
     let mut swarm: libp2p::Swarm<MyBehaviour> = libp2p::SwarmBuilder::with_new_identity()
         .with_tokio()
         // .with_other_transport(constructor)
-        .with_tcp(
-            tcp::Config::default(),
-            noise::Config::new,
-            yamux::Config::default,
-        )?
-        // .with_quic()
+        // .with_tcp(
+        //     tcp::Config::default(),
+        //     noise::Config::new,
+        //     yamux::Config::default,
+        // )?
+        .with_quic()
         .with_behaviour(|key| {
             // To content-address message, we can take the hash of message and use it as an ID.
             let message_id_fn = |message: &gossipsub::Message| {
@@ -75,13 +77,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
             //initializing the store for kademlia based DHT
             let store = MemoryStore::new(key.public().to_peer_id());
             //custom kademlia protocol
-            let mut kad_config = kad::Config::new(StreamProtocol::new("/ipfs/kad/1.0.0"));
+            let mut kad_config = kad::Config::new(StreamProtocol::new("/braidpool/kad/1.0.0"));
             kad_config.set_query_timeout(tokio::time::Duration::from_secs(60));
             //custom kad configuration
             let kademlia_behaviour =
                 kad::Behaviour::with_config(key.public().to_peer_id(), store, kad_config);
+            let protocol_names = kademlia_behaviour.protocol_names();
+            for protocol_name in protocol_names {
+                println!("protocol names are - : {:?}", protocol_name.to_string());
+            }
+
             //identify protocol configuration
-            let identify_config = identify::Config::new("/ipfs/id/1.0.0".to_string(), key.public());
+            let identify_config =
+                identify::Config::new("/braidpool/identify/1.0.0".to_string(), key.public());
             let identify = identify::Behaviour::new(identify_config);
             //custom network behaviour stack from libp2p
             Ok(MyBehaviour {
@@ -99,11 +107,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .gossipsub
         .subscribe(&current_test_topic)
         .unwrap();
-    //current node being listened onto the quic-v1 defauly port with universal address
-    swarm
-        .listen_on("/ip4/0.0.0.0/tcp/0".parse().unwrap())
-        .unwrap();
-    println!("Current peerID {:?}", swarm.local_peer_id());
     //User input message
     let mut stdin = io::BufReader::new(io::stdin()).lines();
     // while let Some(line) = stdin.next_line().await? {
@@ -111,6 +114,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // }
     let mut args = env::args().skip(1);
     if let (Some(peer_id_str), Some(addr_str)) = (args.next(), args.next()) {
+        //current node being listened onto the quic-v1 defauly port with universal address for a peer node
+        swarm
+            .listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse().unwrap())
+            .unwrap();
+        println!(
+            "Current peerID for the peer node is {:?}",
+            swarm.local_peer_id()
+        );
         // Parse the peer ID and address
         let peer_id: PeerId = peer_id_str.parse()?;
         let addr: Multiaddr = addr_str.parse()?;
@@ -125,15 +136,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         swarm.dial(addr_reference)?;
         println!("Dialed bootNode")
+    } else {
+        //binding seed node to :8888 for the bootnode
+        swarm
+            .listen_on("/ip4/0.0.0.0/udp/8888/quic-v1".parse().unwrap())
+            .unwrap();
+        println!(
+            "Current peerID for the peer node is {:?}",
+            swarm.local_peer_id()
+        );
     }
-    // let remote: Multiaddr = "/ip4/127.0.0.1/tcp/46155".parse()?;
-    //dialing the boot node for identifying the other nodes connecting to it
-    //and adding to the DHT itself
-    // if let Some(addr) = std::env::args().nth(1) {
-    //     let remote: Multiaddr = addr.parse()?;
-    //     swarm.dial(remote)?;
-    //     println!("Dialed {addr}")
-    // }
+
     swarm.behaviour_mut().kad.set_mode(Some(Mode::Server));
     loop {
         select! {
@@ -182,10 +195,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 peer_id,connection_id,info
             })) => {
                 println!("INFO RECIEVED {:?}",info);
-                println!("Received {info:?}");
+                println!("{:?} is the current PROTOCOL_NAME for kad",KADPROTOCOLNAME);
                 if info.protocols
                     .iter()
-                    .any(|p| *p == kad::PROTOCOL_NAME)
+                    .any(|p| *p == KADPROTOCOLNAME)
                 {
                     for addr in info.listen_addrs {
                         println!("received addr {addr} through identify");
