@@ -1,0 +1,31 @@
+[package]
+name = "example_4"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "autonatv2_client"
+
+[[bin]]
+name = "autonatv2_server"
+
+[dependencies]
+clap = { version = "4.4.18", features = ["derive"] }
+tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.40"
+rand = "0.8.5"
+opentelemetry_sdk = { version = "0.21.1", optional = true, features = ["rt-tokio"] }
+tracing-opentelemetry = { version = "0.22.0", optional = true }
+opentelemetry-jaeger = { version = "0.20.0", optional = true, features = ["rt-tokio"] }
+cfg-if = "1.0.0"
+libp2p = {version="0.55.0",features=["cbor","macros", "tokio", "tcp", "noise", "yamux", "autonat", "identify", "dns", "quic","request-response"]}
+tracing-subscriber = {version="0.3.19",features=["env-filter"]}
+serde = { version = "1.0", features = ["derive"] }
+cbor4ii = "1.0.0"
+
+
+[features]
+jaeger = ["opentelemetry_sdk", "tracing-opentelemetry", "opentelemetry-jaeger"]
+opentelemetry_sdk = ["dep:opentelemetry_sdk"]
+tracing-opentelemetry = ["dep:tracing-opentelemetry"]
+opentelemetry-jaeger = ["dep:opentelemetry-jaeger"]

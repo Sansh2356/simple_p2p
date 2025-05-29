@@ -35,7 +35,7 @@ struct MyBehaviour {
 async fn main() -> Result<(), Box<dyn Error>> {
     const KADPROTOCOLNAME: StreamProtocol = StreamProtocol::new("/braidpool/kad/1.0.0");
     const IDENTIFYPROTOCOLNAME: StreamProtocol = StreamProtocol::new("/braidpool/identify/1.0.0");
-    let dns_link = "/dns4/french.braidpool.net/tcp";
+    let dns_link = "/dns4/french.braidpool.net/udp/8888/quic-v1";
     let _ = tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .try_init();
