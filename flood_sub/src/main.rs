@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             noise::Config::new,
             yamux::Config::default,
         )?
-        // .with_quic()
+        .with_quic()
         .with_behaviour(|key| {
             // To content-address message, we can take the hash of message and use it as an ID.
             let message_id_fn = |message: &gossipsub::Message| {
@@ -81,10 +81,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             //identify protocol configuration
             let identify_config =
                 identify::Config::new("/braidpool/identify/1.0.0".to_string(), key.public());
-            let a = identify_config
-                .clone()
-                .with_interval(Duration::from_secs(120));
-            let identify = identify::Behaviour::new(a);
+            // let a = identify_config
+            //     .clone()
+            //     .with_interval(Duration::from_secs(1800));
+            let identify = identify::Behaviour::new(identify_config);
             //custom network behaviour stack from libp2p
             let flood_sub_config = floodsub::FloodsubConfig::new(key.public().to_peer_id());
             let floodsub = floodsub::Floodsub::from_config(flood_sub_config);
@@ -97,15 +97,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
             })
         })?
         .build();
+
     //creating a test topic subscribing to the current test topic
     let current_test_topic = floodsub::Topic::new("test_topic");
     let topic_ref = current_test_topic.clone();
-    //User input message
-    let mut stdin = io::BufReader::new(io::stdin()).lines();
-    // while let Some(line) = stdin.next_line().await? {
-    //     println!("length = {} and string is {:?}", line.len(),line);
-    // }
+
+    swarm.behaviour_mut().floodsub.subscribe(current_test_topic);
     let mut args = env::args().skip(1);
+    swarm.behaviour_mut().kad.set_mode(Some(Mode::Server));
     if let (Some(peer_id_str), Some(addr_str)) = (args.next(), args.next()) {
         //current node being listened onto the quic-v1 defauly port with universal address for a peer node
         swarm
@@ -139,31 +138,53 @@ async fn main() -> Result<(), Box<dyn Error>> {
             swarm.local_peer_id()
         );
     }
-    swarm.behaviour_mut().floodsub.subscribe(current_test_topic);
-    swarm.behaviour_mut().kad.set_mode(Some(Mode::Server));
+    let mut stdin = io::BufReader::new(io::stdin()).lines();
     loop {
         select! {
-
-            Ok(Some(line)) = stdin.next_line() => {
-                swarm
-                    .behaviour_mut().floodsub
-                    .publish(topic_ref.clone(), line)
-            }
-          event = swarm.select_next_some() => match event {
-            SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Subscribed { peer_id, topic }))=>{
-                println!("A new peer {:?} subscribed to the topic {:?}",peer_id,topic);
-            }
-            SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Unsubscribed { peer_id, topic }))=>{
-                println!("A peer {:?} unsubsribed from the topic {:?}",peer_id,topic);
-            }
-            SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Message(message)))=>{
-                println!("{:?} Message has been recieved  from the peer {:?}",message.topics,message.source);
-            }
-            SwarmEvent::ConnectionEstablished { peer_id, connection_id, endpoint, num_established, concurrent_dial_errors, established_in }=>{
-                println!("{:?} {:?}",peer_id,connection_id);
+        Ok(Some(line)) = stdin.next_line() => {
+            let a = line.clone();
+            swarm.behaviour_mut().floodsub.publish(topic_ref.clone(),a)
+        }
+        event = swarm.select_next_some() => match event {
+             SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Subscribed { peer_id, topic }))=>{
+            println!("A new peer {:?} subscribed to the topic {:?}",peer_id,topic);
+        }
+        SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Unsubscribed { peer_id, topic }))=>{
+            println!("A peer {:?} unsubsribed from the topic {:?}",peer_id,topic);
+        }
+        SwarmEvent::Behaviour(MyBehaviourEvent::Floodsub(floodsub::FloodsubEvent::Message(message)))=>{
+            println!("{:?} Message has been recieved  from the peer {:?} and having data {:?}",message.topics,message.source,message.data);
+        }
+        SwarmEvent::ConnectionEstablished { peer_id, connection_id, endpoint, num_established, concurrent_dial_errors, established_in }=>{
+            println!("{:?} {:?}",peer_id,connection_id);
+        },
+            SwarmEvent::Behaviour(MyBehaviourEvent::Identify(identify::Event::Sent { peer_id,..})) => {
+                println!("Sent identify info to {peer_id:?}");
             },
-            SwarmEvent::NewListenAddr { address, listener_id } => {
-                println!("Local node is listening on {address}");
+            SwarmEvent::Behaviour(MyBehaviourEvent::Identify(identify::Event::Received {
+                peer_id,connection_id,info
+            })) => {
+                 println!("INFO RECIEVED {:?}",info);
+                let protocol_ref = info.clone();
+                if info.protocols
+                    .iter()
+                    .any(|p| *p == "/braidpool/kad/1.0.0")
+                {
+                    for addr in info.listen_addrs {
+                        swarm.behaviour_mut().kad.add_address(&peer_id, addr);
+                    }
+                } else {
+                    println!("something funky happened, investigate it while updating the routing table KAD");
+                }
+                if protocol_ref.protocols.iter()
+                .any(|p| *p == "/floodsub/1.0.0")
+            {
+                for addr in protocol_ref.listen_addrs {
+                   swarm.behaviour_mut().floodsub.add_node_to_partial_view(peer_id);
+                }
+            } else {
+                println!("something funky happened, investigate it FLOODSUB");
+            }
             }
             SwarmEvent::Behaviour(MyBehaviourEvent::Kad(kad::Event::OutboundQueryProgressed { id, result, stats, step }))=>{
                 match result {
@@ -188,51 +209,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     addresses, bucket_range, old_peer
                 );
             },
-            SwarmEvent::Behaviour(MyBehaviourEvent::Identify(identify::Event::Sent { peer_id,..})) => {
-                // println!("Sent identify info to {peer_id:?}");
-            },
-            SwarmEvent::Behaviour(MyBehaviourEvent::Identify(identify::Event::Received {
-                peer_id,connection_id,info
-            })) => {
-                // println!("INFO RECIEVED {:?}",info);
-                // println!("{:?} is the current PROTOCOL_NAME for kad",KADPROTOCOLNAME);
-                let protocol_ref = info.clone();
-                if info.protocols
-                    .iter()
-                    .any(|p| *p == KADPROTOCOLNAME)
-                {
-                    for addr in info.listen_addrs {
-                        swarm.behaviour_mut().kad.add_address(&peer_id, addr);
-                    }
-                } else {
-                    println!("something funky happened, investigate it");
-                }
-                if protocol_ref.protocols.iter()
-                .any(|p| *p == FLOODSUBPROTOCOLNAME)
-            {
-                for addr in protocol_ref.listen_addrs {
-                   swarm.behaviour_mut().floodsub.add_node_to_partial_view(peer_id);
-                }
-            } else {
-                println!("something funky happened, investigate it");
-            }
 
-
+            SwarmEvent::NewListenAddr { address, .. } => {
+                println!("Local node is listening on {address}");
             }
-            //   SwarmEvent::Behaviour(MyBehaviourEvent::Gossipsub(gossipsub::Event::Message {
-            //       propagation_source: peer_id,
-            //       message_id: id,
-            //       message,
-            //   })) => println!(
-            //           "Got message: '{}' with id: {id} from peer: {peer_id}",
-            //           String::from_utf8_lossy(&message.data),
-            //       ),
-              SwarmEvent::NewListenAddr { address, .. } => {
-                  println!("Local node is listening on {address}");
-                  let s = address;
-              }
-              _ => {println!("{:?}", event)},
-          }
+            _ => {}
+        }
+
         }
     }
     Ok(())
