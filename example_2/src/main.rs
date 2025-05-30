@@ -196,6 +196,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             })) => {
                 println!("INFO RECIEVED {:?}",info);
                 println!("{:?} is the current PROTOCOL_NAME for kad",KADPROTOCOLNAME);
+                println!("protocols -- {:?}",info.protocols);
                 if info.protocols
                     .iter()
                     .any(|p| *p == KADPROTOCOLNAME)
