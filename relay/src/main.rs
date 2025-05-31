@@ -71,6 +71,34 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("Relay server local peerID is {:?}", relay_local_ref);
     loop {
         match swarm.select_next_some().await {
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::CircuitClosed {
+                src_peer_id,
+                dst_peer_id,
+                error,
+            })) => {
+                println!(
+                    "AN INBOUND CIRCUIT REQUEST BETWEEN SOURCE AND DESTINATION HAS BEEN CLOSED {:?} and {:?} due to {:?}",
+                    src_peer_id, dst_peer_id, error
+                );
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::CircuitReqAccepted {
+                src_peer_id,
+                dst_peer_id,
+            })) => {
+                println!(
+                    "AN INBOUND CIRCUIT REQUEST BETWEEN SOURCE AND DESTINATION HAS BEEN ACCEPTED  {:?} and {:?}",
+                    src_peer_id, dst_peer_id
+                );
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::CircuitReqDenied {
+                src_peer_id,
+                dst_peer_id,
+            })) => {
+                println!(
+                    "AN INBOUND CIRCUIT REQUEST BETWEEN SOURCE AND DESTINATION HAS BEEN DENIED {:?} and {:?}",
+                    src_peer_id, dst_peer_id
+                );
+            }
             SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::ReservationReqDenied {
                 src_peer_id,
             })) => {
@@ -147,7 +175,7 @@ struct Behaviour {
 fn generate_ed25519(secret_key_seed: u8) -> identity::Keypair {
     let mut bytes = [0u8; 32];
     bytes[0] = secret_key_seed;
-    
+
     identity::Keypair::ed25519_from_bytes(bytes).expect("only errors on wrong length")
 }
 
