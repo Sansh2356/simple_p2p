@@ -59,12 +59,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 message.data.hash(&mut s);
                 gossipsub::MessageId::from(s.finish().to_string())
             };
-            // let msg: FloodsubMessage = FloodsubMessage {
-            //     source: PeerId::random(),
-            //     data:Bytes::new(),
-            //     sequence_number: Vec::new(),
-            //     topics: Vec::new(),
-            // };
             //initializing the store for kademlia based DHT
             let store = MemoryStore::new(key.public().to_peer_id());
             //custom kademlia protocol
@@ -213,7 +207,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             SwarmEvent::NewListenAddr { address, .. } => {
                 println!("Local node is listening on {address}");
             }
-            _ => {}
+            
+            _ => {println!("{:?}",event);}
         }
 
         }

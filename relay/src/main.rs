@@ -6,15 +6,34 @@ use std::{
 };
 
 use clap::Parser;
-use futures::StreamExt;
+use futures::{AsyncRead, AsyncWrite, StreamExt};
 use libp2p::{
-    PeerId,
-    core::{Multiaddr, multiaddr::Protocol},
+    PeerId, Swarm, Transport,
+    core::{
+        Multiaddr,
+        multiaddr::Protocol,
+        muxing::StreamMuxerBox,
+        transport::{Boxed, upgrade},
+    },
     identify, identity, noise, ping, relay,
-    swarm::{NetworkBehaviour, SwarmEvent},
+    swarm::{Config, NetworkBehaviour, SwarmEvent},
     tcp, yamux,
 };
 use tracing_subscriber::EnvFilter;
+//manually constructing the transport stack
+fn upgrade_transport<StreamSink>(
+    transport: Boxed<StreamSink>,
+    identity: &identity::Keypair,
+) -> Boxed<(PeerId, StreamMuxerBox)>
+where
+    StreamSink: AsyncRead + AsyncWrite + Send + Unpin + 'static,
+{
+    transport
+        .upgrade(upgrade::Version::V1)
+        .authenticate(noise::Config::new(&identity).unwrap())
+        .multiplex(yamux::Config::default())
+        .boxed()
+}
 #[tokio::main]
 
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -23,26 +42,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .try_init();
 
     let local_key: identity::Keypair = identity::Keypair::generate_ed25519();
-
-    let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
-        .with_tokio()
-        .with_tcp(
-            tcp::Config::default(),
-            noise::Config::new,
-            yamux::Config::default,
-        )?
-        .with_quic()
-        .with_behaviour(|key| Behaviour {
-            relay: relay::Behaviour::new(
-                key.public().to_peer_id(),
-                relay::Config {
-                    reservation_duration: Duration::from_secs(2),
-                    ..Default::default()
-                },
-            ),
-            ping: ping::Behaviour::new(ping::Config::new()),
-        })?
-        .build();
+    let transport = upgrade_transport(tcp::async_io::Transport::default().boxed(), &local_key);
+    let net_behaviour = Behaviour {
+        identify: identify::Behaviour::new(identify::Config::new(
+            "/TODO/0.0.1".to_string(),
+            local_key.public(),
+        )),
+        relay: relay::Behaviour::new(
+            local_key.public().to_peer_id(),
+            relay::Config {
+                reservation_duration: Duration::from_secs(2),
+                ..Default::default()
+            },
+        ),
+        ping: ping::Behaviour::new(ping::Config::new()),
+    };
+    let mut swarm = Swarm::new(
+        transport,
+        net_behaviour,
+        local_key.public().to_peer_id(),
+        Config::with_async_std_executor(),
+    );
     let relay_local_peer_id = swarm.local_peer_id();
     let relay_local_ref = relay_local_peer_id.clone();
     let relay_addr = "/ip4/0.0.0.0/tcp/0";
@@ -59,10 +79,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     src_peer_id
                 );
             }
-            // SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::CircuitReqAccepted {
-            //     src_peer_id,
-            //     dst_peer_id,
-            // })) => {}
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(relay::Event::CircuitReqAccepted {
+                src_peer_id,
+                dst_peer_id,
+            })) => {}
             SwarmEvent::Behaviour(BehaviourEvent::Relay(
                 relay::Event::ReservationReqAccepted {
                     src_peer_id,
@@ -99,6 +119,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     peer_id
                 );
             }
+            SwarmEvent::Behaviour(BehaviourEvent::Identify(identify::Event::Sent {
+                connection_id,
+                peer_id,
+            })) => {
+                println!("Sent info to {:?}", peer_id);
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Identify(identify::Event::Received {
+                connection_id,
+                peer_id,
+                info,
+            })) => {
+                println!("Recieved info from and {:?}", info);
+            }
             _ => {}
         }
     }
@@ -108,11 +141,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
 struct Behaviour {
     relay: relay::Behaviour,
     ping: ping::Behaviour,
+    identify: identify::Behaviour,
 }
 
 fn generate_ed25519(secret_key_seed: u8) -> identity::Keypair {
     let mut bytes = [0u8; 32];
     bytes[0] = secret_key_seed;
-
+    
     identity::Keypair::ed25519_from_bytes(bytes).expect("only errors on wrong length")
 }
+
+// let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
+//     .with_tokio()
+//     .with_tcp(
+//         tcp::Config::default(),
+//         noise::Config::new,
+//         yamux::Config::default,
+//     )?
+//     .with_quic()
+//     .with_behaviour(|key| Behaviour {
+//         identify: identify::Behaviour::new(identify::Config::new(
+//             "/TODO/0.0.1".to_string(),
+//             key.public(),
+//         )),
+//         relay: relay::Behaviour::new(
+//             key.public().to_peer_id(),
+//             relay::Config {
+//                 reservation_duration: Duration::from_secs(2),
+//                 ..Default::default()
+//             },
+//         ),
+//         ping: ping::Behaviour::new(ping::Config::new()),
+//     })?
+//     .build();
