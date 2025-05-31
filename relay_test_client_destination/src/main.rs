@@ -1,18 +1,18 @@
 #![allow(unused)]
 use std::ops::Mul;
 
-use futures::{AsyncRead, AsyncWrite, StreamExt};
+use futures::{AsyncRead, AsyncWrite, StreamExt, executor::LocalPool};
 use libp2p::{
-    Multiaddr, PeerId, Swarm, Transport,
+    Multiaddr, PeerId, Swarm, SwarmBuilder, Transport,
     core::{
         muxing::StreamMuxerBox,
-        transport::{Boxed, OrTransport, upgrade},
+        transport::{Boxed, MemoryTransport, OrTransport, upgrade},
         upgrade::SelectUpgrade,
     },
     identify,
     identity::{self, Keypair},
     multiaddr::Protocol,
-    noise, ping, relay,
+    noise, ping, plaintext, quic, relay,
     swarm::{Config, NetworkBehaviour, SwarmEvent},
     tcp, yamux,
 };
@@ -23,6 +23,7 @@ struct Behaviour {
     ping: ping::Behaviour,
     identify: identify::Behaviour,
 }
+use clap::Parser;
 //manuall constructing the transport stack
 fn upgrade_transport<StreamSink>(
     transport: Boxed<StreamSink>,
@@ -37,9 +38,76 @@ where
         .multiplex(yamux::Config::default())
         .boxed()
 }
+async fn wait_for_reservation(
+    client: &mut Swarm<Behaviour>,
+    client_addr: Multiaddr,
+    relay_peer_id: PeerId,
+    is_renewal: bool,
+) {
+    let mut new_listen_addr = false;
+    let mut reservation_req_accepted = false;
+    loop {
+        match client.select_next_some().await {
+            SwarmEvent::ExternalAddrConfirmed { address } if !is_renewal => {
+                assert_eq!(address, client_addr);
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(
+                relay::client::Event::ReservationReqAccepted {
+                    relay_peer_id: peer_id,
+                    renewal,
+                    ..
+                },
+            )) if relay_peer_id == peer_id && renewal == is_renewal => {
+                println!(
+                    "RESERVATION HAS BEEN ACCEPTED from peer Id :{:?} and relay peerId {:?}",
+                    peer_id, relay_peer_id
+                );
+                reservation_req_accepted = true;
+                if new_listen_addr {
+                    break;
+                } else {
+                    break;
+                }
+            }
+
+            SwarmEvent::NewListenAddr { address, .. } if address == client_addr => {
+                new_listen_addr = true;
+                if reservation_req_accepted {
+                    break;
+                }
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Ping(_)) => {}
+            e => println!(" {e:?}"),
+        }
+    }
+}
+async fn wait_for_dial(client: &mut Swarm<Behaviour>, remote: PeerId) -> bool {
+    loop {
+        match client.select_next_some().await {
+            SwarmEvent::Dialing {
+                peer_id: Some(peer_id),
+                ..
+            } if peer_id == remote => {}
+            SwarmEvent::ConnectionEstablished { peer_id, .. } if peer_id == remote => return true,
+            SwarmEvent::OutgoingConnectionError { peer_id, .. } if peer_id == Some(remote) => {
+                return false;
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Ping(_)) => {}
+            e => panic!("{e:?}"),
+        }
+    }
+}
+#[derive(Parser, Debug)]
+struct Args {
+    relay_peer_id: String,
+    relay_multiaddr: String,
+}
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
+    //generating the local key pair
     let local_key = Keypair::generate_ed25519();
+    //generating the relay-client Transport and Network behaviour for relay-client
     let (relay_transport, behaviour) = client::new(local_key.public().to_peer_id());
     //Defining the network behaviour utlizing ping,client-relay and identify
     let swarm_bheaviour = Behaviour {
@@ -62,23 +130,26 @@ async fn main() {
         local_key.public().to_peer_id(),
         Config::with_async_std_executor(),
     );
-    let relay_addr = "/ip4/127.0.0.1/tcp/41043".parse::<Multiaddr>().unwrap();
-    let relay_peer_id = "12D3KooWA5RwKzw2zNhLaHJKiBRAM6REs6Xkc1VnEuHnPRqNiRwx".parse::<PeerId>().unwrap();
-    let client_addr = relay_addr
-        .with(Protocol::P2p(relay_peer_id))
-        .with(Protocol::P2pCircuit);
+    let mut pool = LocalPool::new();
+    let relay_peer_id = args.relay_peer_id.parse::<PeerId>().unwrap();
+    let relay_multi_addr = args.relay_multiaddr.parse::<Multiaddr>().unwrap();
     // swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse().unwrap());
-    swarm.listen_on(client_addr).unwrap();
-    // swarm.dial("/ip4/127.0.0.1/tcp/38333".parse::<Multiaddr>().unwrap());
-    // swarm.listen_on("/ip4/127.0.0.1/tcp/38333/p2p-circuit".parse().unwrap());
-    // swarm.dial("/ip4/127.0.0.1/tcp/38333/".parse::<Multiaddr>().unwrap());
-    swarm.dial(
-        "/ip4/127.0.0.1/tcp/41043/p2p/12D3KooWA5RwKzw2zNhLaHJKiBRAM6REs6Xkc1VnEuHnPRqNiRwx"
-            .parse::<Multiaddr>()
-            .unwrap(),
-    );
-
-    let mut reservation_req_accepted = false;
+    //relay address
+    //dial address
+    let dial_addr = relay_multi_addr
+        .with(Protocol::P2p(relay_peer_id))
+        .with(Protocol::P2pCircuit)
+        .with(Protocol::P2p(local_key.public().to_peer_id()));
+    let addr_ref = dial_addr.clone();
+    println!("addr ref ---- : {:?}", addr_ref);
+    swarm.listen_on(dial_addr).unwrap();
+    assert!(pool.run_until(wait_for_dial(&mut swarm, relay_peer_id)));
+    pool.run_until(wait_for_reservation(
+        &mut swarm,
+        addr_ref.clone(),
+        relay_peer_id,
+        false,
+    ));
 
     loop {
         match swarm.select_next_some().await {
@@ -114,7 +185,7 @@ async fn main() {
                 established_in,
             } => {
                 println!(
-                    "Connection established with the relay successfully with the relay peerid {:?}",
+                    "Connection established with the relay successfully with the peer having peerid {:?}",
                     peer_id
                 );
             }
@@ -144,28 +215,20 @@ async fn main() {
             })) => {
                 println!("Recieved info from and {:?}", info);
             }
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(
+                relay::client::Event::InboundCircuitEstablished { src_peer_id, limit },
+            )) => {
+                println!("INBOUND CIRCUIT ESTABLISHED");
+            }
+            SwarmEvent::Behaviour(BehaviourEvent::Relay(
+                relay::client::Event::OutboundCircuitEstablished {
+                    relay_peer_id,
+                    limit,
+                },
+            )) => {
+                println!("OUTBOUND CIRCUIT ESTABLISHED");
+            }
             _ => {}
         }
     }
 }
-
-// let mut swarm = libp2p::SwarmBuilder::with_existing_identity(local_key)
-//     .with_tokio()
-//     .with_tcp(
-//         tcp::Config::default(),
-//         noise::Config::new,
-//         yamux::Config::default,
-//     )
-//     .unwrap()
-//     .with_quic()
-//     // .with_relay_client(security_upgrade, multiplexer_upgrade)
-//     .with_behaviour(|key| Behaviour {
-//         ping: ping::Behaviour::new(ping::Config::new()),
-//         relay: behaviour,
-//         identify: identify::Behaviour::new(identify::Config::new(
-//             String::from("/TODO/0.0.1"),
-//             key.public(),
-//         )),
-//     })
-//     .unwrap()
-//     .build();
