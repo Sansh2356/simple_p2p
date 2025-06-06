@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         transport,
         net_behaviour,
         local_key.public().to_peer_id(),
-        Config::with_async_std_executor(),
+        Config::with_async_std_executor().with_idle_connection_timeout(Duration::from_secs(3600)),
     );
     let relay_local_peer_id = swarm.local_peer_id();
     let relay_local_ref = relay_local_peer_id.clone();
@@ -131,8 +131,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     address.to_string()
                 );
             }
-            SwarmEvent::Behaviour(BehaviourEvent::Ping(_)) => {
-                println!("Received ping from some peer");
+            SwarmEvent::Behaviour(BehaviourEvent::Ping(ping_event)) => {
+                println!("Received ping from some peer having peer ID {:?}",ping_event.peer);
             }
             SwarmEvent::ConnectionEstablished {
                 peer_id,

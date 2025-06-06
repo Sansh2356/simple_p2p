@@ -1,5 +1,5 @@
 [package]
-name = "example_2"
+name = "example_5"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,5 +8,3 @@ futures = "0.3.31"
 libp2p = {version = "0.55.0",features = ["dns","floodsub","tokio", "gossipsub", "mdns", "noise", "macros", "tcp", "yamux", "quic","kad","identify","ping","autonat"]}
 tokio = {version="1.45.0",features = ["full"] }
 tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
-
-
