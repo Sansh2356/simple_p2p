@@ -1,0 +1,18 @@
+[package]
+name = "hole-punching"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.6", features = ["derive"] }
+tokio = { version = "1.37.0", features = ["full"] }
+futures = "0.3.31"
+libp2p = {version = "0.55.0",features = ["plaintext","relay","ping","tokio", "gossipsub", "mdns", "noise", "macros", "tcp", "yamux", "quic","kad","identify","autonat","dns","async-std","dcutr"]}
+tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
+rand = "0.9.1"
+anyhow = "1.0.100"
+either = "1.15.0"
+tracing = "0.1.41"
+serde_json = "1.0.145"
+serde = {version="1.0.228",features=["derive"]}
+env_logger = "0.11.8"
