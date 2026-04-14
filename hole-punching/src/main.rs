@@ -6,6 +6,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use clap::Parser;
 use either::Either;
 use futures::stream::StreamExt;
 use libp2p::{
@@ -20,8 +21,21 @@ use libp2p::{
 };
 use serde::Serialize;
 
-/// The redis key we push the listen client's PeerId to.
-const LISTEN_CLIENT_PEER_ID: &str = "LISTEN_CLIENT_PEER_ID";
+#[derive(Parser, Debug)]
+#[command(about = "Hole-punching demo using DCUtR. Run one peer as listener and one as dialer.")]
+struct Args {
+    /// Role to run as: listen or dial
+    #[arg(long)]
+    mode: Mode,
+
+    /// Relay server multiaddr including its peer ID
+    #[arg(long)]
+    relay_addr: Multiaddr,
+
+    /// PeerID of the listening peer (required when --mode=dial)
+    #[arg(long)]
+    remote_peer_id: Option<PeerId>,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -30,7 +44,12 @@ async fn main() -> Result<()> {
         .parse_default_env()
         .init();
 
-    let mode = Mode::Listen;
+    let args = Args::parse();
+
+    if args.mode == Mode::Dial && args.remote_peer_id.is_none() {
+        panic!("--remote-peer-id is required when running in dial mode");
+    }
+
     let transport = TransportProtocol::Tcp;
 
     let mut swarm = libp2p::SwarmBuilder::with_new_identity()
@@ -57,28 +76,30 @@ async fn main() -> Result<()> {
         })?
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
-    let relay_addr = match transport {
-        TransportProtocol::Tcp => "/ip4/23.111.156.126/tcp/39633"
-            .parse::<Multiaddr>()
-            .unwrap_or_else(|_| tcp_addr(Ipv4Addr::new(127, 0, 0, 1).into()))
-            .with(Protocol::P2p(
-                "12D3KooWRyvVCurM3QsCK9Wg44LGWAub3BsDH7q9jFjFKYFYYdfb"
-                    .parse()
-                    .unwrap(),
-            ))
+
+    println!("Local PeerID: {}", swarm.local_peer_id());
+
+    // Build the relay circuit address appropriate for the role:
+    let relay_circuit_addr = match args.mode {
+        Mode::Listen => args
+            .relay_addr
+            .clone()
             .with(Protocol::P2pCircuit)
-            .with(Protocol::P2p(swarm.local_peer_id().clone())),
+            .with(Protocol::P2p(*swarm.local_peer_id())),
+        Mode::Dial => args
+            .relay_addr
+            .clone()
+            .with(Protocol::P2pCircuit)
+            .with(Protocol::P2p(args.remote_peer_id.unwrap())),
     };
-    println!("{:?}", relay_addr.to_string());
+
+    println!("Circuit address: {relay_circuit_addr}");
 
     client_listen_on_transport(&mut swarm, transport).await?;
-    println!("{:?}", relay_addr.to_string());
 
-    let id = client_setup(&mut swarm, relay_addr.clone(), mode).await?;
-    println!("{:?}", relay_addr.to_string());
+    let id = client_setup(&mut swarm, relay_circuit_addr, args.mode).await?;
 
     let mut hole_punched_peer_connection = None;
-    println!("{:?}", relay_addr.to_string());
 
     loop {
         match (
@@ -115,7 +136,7 @@ async fn main() -> Result<()> {
                 })),
                 Some(hole_punched_connection),
                 _,
-            ) if mode == Mode::Dial && connection == hole_punched_connection => {
+            ) if args.mode == Mode::Dial && connection == hole_punched_connection => {
                 println!("{}", serde_json::to_string(&Report::new(rtt))?);
 
                 return Ok(());
@@ -216,17 +237,11 @@ async fn client_setup(
             Either::Left(id)
         }
         Mode::Dial => {
-            let remote_peer_id = LISTEN_CLIENT_PEER_ID.parse::<PeerId>().unwrap();
-
-            let opts = DialOpts::from(
-                relay_addr
-                    .with(Protocol::P2pCircuit)
-                    .with(Protocol::P2p(remote_peer_id)),
-            );
+            // relay_addr is already the full circuit address built in main —
+            // do not append p2p-circuit again.
+            let opts = DialOpts::from(relay_addr);
             let id = opts.connection_id();
-
             swarm.dial(opts)?;
-
             Either::Right(id)
         }
     };
