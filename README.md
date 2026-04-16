@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Sansh2356/simple_p2p/graph/badge.svg?token=RPRHMU6TT1)](https://codecov.io/gh/Sansh2356/simple_p2p)
+
 # simple_p2p
 
 Hole-punching implementation using DCUtR, AutoNAT, and relay via the `libp2p` networking stack.
