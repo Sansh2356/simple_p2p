@@ -21,7 +21,7 @@ cfg-if = "1.0.0"
 libp2p = {version="0.55.0",features=["cbor","macros", "tokio", "tcp", "noise", "yamux", "autonat", "identify", "dns", "quic","request-response"]}
 tracing-subscriber = {version="0.3.19",features=["env-filter"]}
 serde = { version = "1.0", features = ["derive"] }
-cbor4ii = "1.0.0"
+cbor4ii = "1.2.2"
 
 
 [features]
