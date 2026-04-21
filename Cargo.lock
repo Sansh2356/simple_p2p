@@ -735,40 +735,40 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "capnp"
-version = "0.20.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "053b81915c2ce1629b8fb964f578b18cb39b23ef9d5b24120d0dfc959569a1d9"
-dependencies = [
- "embedded-io",
-]
-
-[[package]]
-name = "capnp"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1d1b4a00e80b7c4b1a49e845365f25c9d8fd0a19c9cd8d66f68afea47b1f020"
 dependencies = [
- "embedded-io",
+ "embedded-io 0.6.1",
+]
+
+[[package]]
+name = "capnp"
+version = "0.25.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63da65e5e9ffc3b8f993d4ad222a548152549351a643f6b850a7773cb6ff2809"
+dependencies = [
+ "embedded-io 0.7.1",
 ]
 
 [[package]]
 name = "capnp-futures"
-version = "0.20.1"
+version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b70b0d44372d42654e3efac38c1643c7b0f9d3a9e9b72b635f942ff3f17e891"
+checksum = "73b69dfddccc57844f9a90f9d72b44b97c326914851ea94fb7da40ef9cad6e8d"
 dependencies = [
- "capnp 0.20.6",
+ "capnp 0.25.4",
  "futures-channel",
  "futures-util",
 ]
 
 [[package]]
 name = "capnp-rpc"
-version = "0.20.3"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5a945dd7eac211c30763aa1dbf86ed8e58129d01442d4d2d516facfdb859a1e"
+checksum = "07ccca6d26009f4d6c12b741994f33b421da613b5dcf461508e236b53ef862f1"
 dependencies = [
- "capnp 0.20.6",
+ "capnp 0.25.4",
  "capnp-futures",
  "futures",
 ]
@@ -1360,6 +1360,12 @@ name = "embedded-io"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
+
+[[package]]
+name = "embedded-io"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9eb1aa714776b75c7e67e1da744b81a129b3ff919c8712b5e1b32252c1f07cc7"
 
 [[package]]
 name = "enum-as-inner"
