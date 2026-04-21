@@ -541,7 +541,7 @@ checksum = "4cbbc9d0964165b47557570cce6c952866c2678457aca742aafc9fb771d30270"
 [[package]]
 name = "base58ck"
 version = "0.2.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "bitcoin-internals",
  "bitcoin_hashes 0.16.0",
@@ -568,9 +568,10 @@ checksum = "d965446196e3b7decd44aa7ee49e31d630118f90ef12f97900f262eb915c951d"
 [[package]]
 name = "bitcoin"
 version = "0.33.0-alpha.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "base58ck",
+ "base64",
  "bech32",
  "bitcoin-internals",
  "bitcoin-io 0.2.0",
@@ -586,7 +587,7 @@ dependencies = [
 [[package]]
 name = "bitcoin-internals"
 version = "0.4.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "hex-conservative 0.3.0",
  "serde",
@@ -601,7 +602,7 @@ checksum = "0b47c4ab7a93edb0c7198c5535ed9b52b63095f4e9b45279c6736cec4b856baf"
 [[package]]
 name = "bitcoin-io"
 version = "0.2.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "bitcoin-internals",
  "bitcoin_hashes 0.16.0",
@@ -610,8 +611,9 @@ dependencies = [
 [[package]]
 name = "bitcoin-primitives"
 version = "0.101.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
+ "arrayvec",
  "bitcoin-internals",
  "bitcoin-units",
  "bitcoin_hashes 0.16.0",
@@ -622,7 +624,7 @@ dependencies = [
 [[package]]
 name = "bitcoin-units"
 version = "0.2.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "bitcoin-internals",
  "serde",
@@ -641,7 +643,7 @@ dependencies = [
 [[package]]
 name = "bitcoin_hashes"
 version = "0.16.0"
-source = "git+https://github.com/braidpool/rust-bitcoin.git#436de8ef12ab371aab6e9f6fbfb098238b42657d"
+source = "git+https://github.com/braidpool/rust-bitcoin.git#a419fc9aa689b576e4d605aa00b77a5298d2b185"
 dependencies = [
  "bitcoin-internals",
  "hex-conservative 0.3.0",
@@ -1218,7 +1220,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 2.0.100",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1998,6 +2000,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4afe881d0527571892c4034822e59bb10c6c991cce6abe8199b6f5cf10766f55"
 dependencies = [
  "arrayvec",
+ "serde",
 ]
 
 [[package]]
