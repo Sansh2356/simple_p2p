@@ -1220,7 +1220,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 2.0.100",
 ]
 
 [[package]]
@@ -5215,9 +5215,9 @@ dependencies = [
 
 [[package]]
 name = "transitive"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39b89a3bbc020b12f4086cc84ed4ef348ffad0f7ddfa6134d026678217b6de1c"
+checksum = "baf33f1e1fefdc7c6539d9bd9313296b58618e683606e8df7bd4e3a6758cc6dd"
 dependencies = [
  "proc-macro2",
  "quote",
