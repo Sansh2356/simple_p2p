@@ -737,9 +737,9 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "capnp"
-version = "0.21.0"
+version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1d1b4a00e80b7c4b1a49e845365f25c9d8fd0a19c9cd8d66f68afea47b1f020"
+checksum = "4e92edec8974fcd7ece90bb021db782abe14a61c10c817f197f700fef7430eb8"
 dependencies = [
  "embedded-io 0.6.1",
 ]
@@ -781,7 +781,7 @@ version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5af589f7a7f3e6d920120b913345bd9a2fc65dfd76c5053a142852a5ea2e8609"
 dependencies = [
- "capnp 0.21.0",
+ "capnp 0.21.7",
 ]
 
 [[package]]
@@ -4610,7 +4610,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bitcoin",
- "capnp 0.21.0",
+ "capnp 0.25.4",
  "capnp-rpc",
  "capnpc",
  "futures",
