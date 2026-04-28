@@ -11,7 +11,7 @@ tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
 plotters = "0.3.3"
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 
 [[bench]]
 name = "benchmark"
