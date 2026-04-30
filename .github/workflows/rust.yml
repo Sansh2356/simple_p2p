@@ -29,7 +29,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - name: Cache Rust deps
-        uses: Swatinem/rust-cache@v
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
         with:
           shared-key: cargo-${{ matrix.toolchain }}
           cache-on-failure: true
