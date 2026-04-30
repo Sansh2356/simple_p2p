@@ -28,7 +28,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
 
-      - name: Cache Rust dependencies
+      - name: Cache Rust deps
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: cargo-${{ matrix.toolchain }}
