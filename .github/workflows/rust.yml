@@ -28,5 +28,5 @@ jobs:
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo
-      - name: cargo test 
+      - name: Test
         run: cargo test 
