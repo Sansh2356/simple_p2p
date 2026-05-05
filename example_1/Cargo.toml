@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 futures = "0.3.31"
 libp2p = {version = "0.55.0",features = ["noise", "ping", "tcp", "tokio", "yamux","quic"]}
-tokio = {version="1.45.0",features = ["full"] }
+tokio = {version="1.50.0",features = ["full"] }
 tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
 plotters = "0.3.3"
 
