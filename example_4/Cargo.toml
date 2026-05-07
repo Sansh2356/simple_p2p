@@ -10,7 +10,7 @@ name = "autonatv2_client"
 name = "autonatv2_server"
 
 [dependencies]
-clap = { version = "4.4.18", features = ["derive"] }
+clap = { version = "4.5.60", features = ["derive"] }
 tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.40"
 rand = "0.8.5"
