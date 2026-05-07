@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-clap = {version="4.5.39",features=["derive"]}
+clap = {version="4.5.60",features=["derive"]}
 futures = "0.3.31"
 libp2p = {version = "0.55.0",features = ["tokio", "gossipsub", "mdns", "noise", "macros", "tcp", "yamux", "quic","kad","identify","autonat","dns"]}
 rand="0.8.5"
