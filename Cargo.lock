@@ -1960,7 +1960,7 @@ dependencies = [
  "clap 4.5.60",
  "libp2p",
  "opentelemetry-jaeger",
- "opentelemetry_sdk 0.21.2",
+ "opentelemetry_sdk 0.30.0",
  "rand 0.8.5",
  "serde",
  "tokio",
@@ -3500,7 +3500,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a793df0d7afeac54f95b471d3af7f0d4fb975699f972341a4b76988d49cdf0c"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -4908,7 +4908,10 @@ dependencies = [
  "opentelemetry 0.30.0",
  "percent-encoding",
  "rand 0.9.1",
+ "serde_json",
  "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
