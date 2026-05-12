@@ -1204,7 +1204,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d162beedaa69905488a8da94f5ac3edb4dd4788b732fadb7bd120b2625c1976"
 dependencies = [
  "data-encoding",
- "syn 2.0.100",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -4572,7 +4572,7 @@ dependencies = [
  "num-bigint",
  "ordered-float 5.3.0",
  "rand 0.8.5",
- "secp256k1 0.30.0",
+ "secp256k1 0.31.0",
  "serde",
  "serde_json",
  "sha2",
