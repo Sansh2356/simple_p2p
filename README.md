@@ -70,7 +70,7 @@ cd relay_test_client_destination
 cargo run -- <relay-peer-id> /ip4/<relay-ip>/tcp/<relay-port>
 ```
 
-Note the **Local PeerID** printed on startup — needed for the source client.
+Note the **Local PeerID** printed on startup — needed for the source client. 
 
 ---
 
