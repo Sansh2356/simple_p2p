@@ -1,0 +1,18 @@
+[package]
+name = "iroh-gossip-pubsub"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "pubsub"
+path = "src/main.rs"
+
+[dependencies]
+iroh = "1.0"
+iroh-gossip = "0.101"
+anyhow = "1.0"
+clap = { version = "4.5.6", features = ["derive"] }
+futures-lite = "2"
+sha2 = "0.10"
+tokio = { version = "1.50.0", features = ["full"] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
