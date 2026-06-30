@@ -544,7 +544,7 @@ dependencies = [
  "clap 4.5.60",
  "futures",
  "libp2p",
- "rand 0.8.5",
+ "rand 0.10.1",
  "tokio",
  "tracing-subscriber 0.3.19",
 ]
@@ -1946,7 +1946,7 @@ dependencies = [
  "clap 4.5.60",
  "futures",
  "libp2p",
- "rand 0.8.5",
+ "rand 0.10.1",
  "tokio",
  "tracing-subscriber 0.3.19",
 ]
@@ -1961,7 +1961,7 @@ dependencies = [
  "libp2p",
  "opentelemetry-jaeger",
  "opentelemetry_sdk 0.30.0",
- "rand 0.8.5",
+ "rand 0.10.1",
  "serde",
  "tokio",
  "tracing",
@@ -2697,7 +2697,7 @@ dependencies = [
  "env_logger",
  "futures",
  "libp2p",
- "rand 0.9.1",
+ "rand 0.10.1",
  "serde",
  "serde_json",
  "tokio",
@@ -3028,7 +3028,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "log",
- "rand 0.8.5",
+ "rand 0.8.6",
  "tokio",
  "url",
  "xmltree",
@@ -3189,7 +3189,7 @@ name = "iroh-connect"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "iroh",
  "tokio",
  "tracing-subscriber 0.3.19",
@@ -3297,7 +3297,7 @@ name = "iroh-tor"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-tor-transport",
@@ -3311,7 +3311,7 @@ version = "0.1.0"
 source = "git+https://github.com/n0-computer/iroh-tor-transport?rev=55b19c567f63e265d206f5a40369ab9597ce602e#55b19c567f63e265d206f5a40369ab9597ce602e"
 dependencies = [
  "bytes",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-base",
@@ -3572,7 +3572,7 @@ dependencies = [
  "libp2p-swarm",
  "quick-protobuf",
  "quick-protobuf-codec",
- "rand 0.8.5",
+ "rand 0.8.6",
  "rand_core 0.6.4",
  "thiserror 2.0.12",
  "tracing",
@@ -3608,7 +3608,7 @@ dependencies = [
  "parking_lot",
  "pin-project",
  "quick-protobuf",
- "rand 0.8.5",
+ "rand 0.8.6",
  "rw-stream-sink",
  "thiserror 2.0.12",
  "tracing",
@@ -3671,7 +3671,7 @@ dependencies = [
  "libp2p-swarm",
  "quick-protobuf",
  "quick-protobuf-codec",
- "rand 0.8.5",
+ "rand 0.8.6",
  "smallvec",
  "thiserror 2.0.12",
  "tracing",
@@ -3701,7 +3701,7 @@ dependencies = [
  "prometheus-client",
  "quick-protobuf",
  "quick-protobuf-codec",
- "rand 0.8.5",
+ "rand 0.8.6",
  "regex",
  "sha2 0.10.8",
  "tracing",
@@ -3740,7 +3740,7 @@ dependencies = [
  "hkdf",
  "multihash",
  "quick-protobuf",
- "rand 0.8.5",
+ "rand 0.8.6",
  "sha2 0.10.8",
  "thiserror 2.0.12",
  "tracing",
@@ -3765,7 +3765,7 @@ dependencies = [
  "libp2p-swarm",
  "quick-protobuf",
  "quick-protobuf-codec",
- "rand 0.8.5",
+ "rand 0.8.6",
  "sha2 0.10.8",
  "smallvec",
  "thiserror 2.0.12",
@@ -3788,7 +3788,7 @@ dependencies = [
  "libp2p-core",
  "libp2p-identity",
  "libp2p-swarm",
- "rand 0.8.5",
+ "rand 0.8.6",
  "smallvec",
  "socket2 0.5.9",
  "tokio",
@@ -3831,7 +3831,7 @@ dependencies = [
  "multihash",
  "once_cell",
  "quick-protobuf",
- "rand 0.8.5",
+ "rand 0.8.6",
  "snow",
  "static_assertions",
  "thiserror 2.0.12",
@@ -3851,7 +3851,7 @@ dependencies = [
  "libp2p-core",
  "libp2p-identity",
  "libp2p-swarm",
- "rand 0.8.5",
+ "rand 0.8.6",
  "tracing",
  "web-time 1.1.0",
 ]
@@ -3886,7 +3886,7 @@ dependencies = [
  "libp2p-identity",
  "libp2p-tls",
  "quinn",
- "rand 0.8.5",
+ "rand 0.8.6",
  "ring",
  "rustls",
  "socket2 0.5.9",
@@ -3912,7 +3912,7 @@ dependencies = [
  "libp2p-swarm",
  "quick-protobuf",
  "quick-protobuf-codec",
- "rand 0.8.5",
+ "rand 0.8.6",
  "static_assertions",
  "thiserror 2.0.12",
  "tracing",
@@ -3932,7 +3932,7 @@ dependencies = [
  "libp2p-core",
  "libp2p-identity",
  "libp2p-swarm",
- "rand 0.8.5",
+ "rand 0.8.6",
  "serde",
  "smallvec",
  "tracing",
@@ -3955,7 +3955,7 @@ dependencies = [
  "lru 0.12.5",
  "multistream-select",
  "once_cell",
- "rand 0.8.5",
+ "rand 0.8.6",
  "smallvec",
  "tokio",
  "tracing",
@@ -4890,7 +4890,7 @@ dependencies = [
  "opentelemetry 0.21.0",
  "ordered-float 4.6.0",
  "percent-encoding",
- "rand 0.8.5",
+ "rand 0.8.6",
  "thiserror 1.0.69",
  "tokio",
  "tokio-stream",
@@ -5549,9 +5549,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.8.5"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
+checksum = "5ca0ecfa931c29007047d1bc58e623ab12e5590e8c7cc53200d5202b69266d8a"
 dependencies = [
  "libc",
  "rand_chacha 0.3.1",
@@ -5764,7 +5764,7 @@ dependencies = [
  "clap 4.5.60",
  "futures",
  "libp2p",
- "rand 0.9.1",
+ "rand 0.10.1",
  "tokio",
  "tracing-subscriber 0.3.19",
 ]
@@ -6062,7 +6062,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b50c5943d326858130af85e049f2661ba3c78b26589b8ab98e65e80ae44a1252"
 dependencies = [
  "bitcoin_hashes 0.14.0",
- "rand 0.8.5",
+ "rand 0.8.6",
  "secp256k1-sys 0.10.1",
  "serde",
 ]
@@ -6346,7 +6346,7 @@ dependencies = [
  "hex",
  "num-bigint",
  "ordered-float 5.3.0",
- "rand 0.8.5",
+ "rand 0.10.1",
  "secp256k1 0.31.0",
  "serde",
  "serde_json",
@@ -6636,7 +6636,7 @@ dependencies = [
  "opentelemetry 0.30.0",
  "opentelemetry-semantic-conventions 0.30.0",
  "pin-project",
- "rand 0.8.5",
+ "rand 0.8.6",
  "static_assertions",
  "tarpc-plugins",
  "thiserror 2.0.12",
@@ -8129,7 +8129,7 @@ dependencies = [
  "nohash-hasher",
  "parking_lot",
  "pin-project",
- "rand 0.8.5",
+ "rand 0.8.6",
  "static_assertions",
 ]
 
