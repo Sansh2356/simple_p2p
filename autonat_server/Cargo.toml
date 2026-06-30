@@ -7,7 +7,7 @@ edition = "2024"
 clap = {version="4.5.60",features=["derive"]}
 futures = "0.3.31"
 libp2p = {version = "0.55.0",features = ["dns","tokio", "gossipsub", "mdns", "noise", "macros", "tcp", "yamux", "quic","kad","identify","autonat"]}
-rand="0.8.5"
+rand="0.10.1"
 tokio = {version="1.50.0",features = ["full"] }
 tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
 

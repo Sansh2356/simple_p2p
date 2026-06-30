@@ -9,7 +9,7 @@ tokio = { version = "1.50.0", features = ["full"] }
 futures = "0.3.31"
 libp2p = {version = "0.55.0",features = ["plaintext","relay","ping","tokio", "gossipsub", "mdns", "noise", "macros", "tcp", "yamux", "quic","kad","identify","autonat","dns","async-std","dcutr"]}
 tracing-subscriber = {version="0.3.19",features = ["env-filter"]}
-rand = "0.9.1"
+rand = "0.10.1"
 anyhow = "1.0.100"
 either = "1.15.0"
 tracing = "0.1.41"
