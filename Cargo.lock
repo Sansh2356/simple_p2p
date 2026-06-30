@@ -848,23 +848,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "capnp-futures"
-version = "0.25.2"
+name = "capnp"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73b69dfddccc57844f9a90f9d72b44b97c326914851ea94fb7da40ef9cad6e8d"
+checksum = "71338171543626713e427635f7de390328d9e85828a816a0c88d959032b34a2f"
 dependencies = [
- "capnp 0.25.4",
+ "embedded-io 0.7.1",
+]
+
+[[package]]
+name = "capnp-futures"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a732246b9523a962319faa1000b163645721accbc759cdf296f5f8424a97bdc"
+dependencies = [
+ "capnp 0.26.0",
  "futures-channel",
  "futures-util",
 ]
 
 [[package]]
 name = "capnp-rpc"
-version = "0.25.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07ccca6d26009f4d6c12b741994f33b421da613b5dcf461508e236b53ef862f1"
+checksum = "09a77734dd5aa0dbbc2e1a5953a80cef75c11af289641cdaeb59cce38b11e2e1"
 dependencies = [
- "capnp 0.25.4",
+ "capnp 0.26.0",
  "capnp-futures",
  "futures",
 ]
@@ -1512,7 +1521,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccc2776f0c61eca1ca32528f85548abd1a4be8fb53d1b21c013e4f18da1e7090"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 2.0.100",
 ]
 
 [[package]]
@@ -3189,7 +3198,7 @@ name = "iroh-connect"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "iroh",
  "tokio",
  "tracing-subscriber 0.3.19",
@@ -3297,7 +3306,7 @@ name = "iroh-tor"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-tor-transport",
@@ -3311,7 +3320,7 @@ version = "0.1.0"
 source = "git+https://github.com/n0-computer/iroh-tor-transport?rev=55b19c567f63e265d206f5a40369ab9597ce602e#55b19c567f63e265d206f5a40369ab9597ce602e"
 dependencies = [
  "bytes",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-base",
@@ -3500,7 +3509,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a793df0d7afeac54f95b471d3af7f0d4fb975699f972341a4b76988d49cdf0c"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -8045,8 +8054,8 @@ dependencies = [
  "log",
  "serde",
  "thiserror 2.0.12",
- "windows 0.61.1",
- "windows-core 0.61.0",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
