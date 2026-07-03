@@ -41,11 +41,12 @@ async fn main() -> Result<()> {
                 Ok(streams) => streams,
                 Err(_) => break,
             };
-            let msg = recv_stream
-                .read_to_end(64 * 1024)
-                .await
-                .context("read")?;
-            println!("received {} bytes: {:?}", msg.len(), String::from_utf8_lossy(&msg));
+            let msg = recv_stream.read_to_end(64 * 1024).await.context("read")?;
+            println!(
+                "received {} bytes: {:?}",
+                msg.len(),
+                String::from_utf8_lossy(&msg)
+            );
             send_stream.write_all(&msg).await.context("write")?;
             send_stream.finish().context("finish")?;
         }

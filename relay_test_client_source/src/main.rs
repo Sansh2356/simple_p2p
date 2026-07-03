@@ -86,7 +86,7 @@ async fn main() {
     swarm.dial(relay_addr).unwrap();
 
     let mut reservation_req_accepted = false;
-    println!("CURRENT SWARM LOCAL PEERID {:?}",swarm.local_peer_id());
+    println!("CURRENT SWARM LOCAL PEERID {:?}", swarm.local_peer_id());
 
     loop {
         match swarm.select_next_some().await {

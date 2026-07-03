@@ -102,7 +102,7 @@ async fn run_ping(mut swarm1: Swarm<Behaviour>, mut swarm2: Swarm<Behaviour>, pr
     while let Some(event) = events.next().await {
         if let SwarmEvent::Behaviour(event) = event {
             println!("EVENT === {:?}", event);
-            println!("PING COUNT --- {:?}",ping_count);
+            println!("PING COUNT --- {:?}", ping_count);
             ping_count += 1;
             if ping_count >= 10 {
                 break;

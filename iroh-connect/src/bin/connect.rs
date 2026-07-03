@@ -44,10 +44,7 @@ async fn main() -> Result<()> {
     send_stream.finish().context("finish")?;
     println!("sent: {:?}", args.message);
 
-    let reply = recv_stream
-        .read_to_end(64 * 1024)
-        .await
-        .context("read")?;
+    let reply = recv_stream.read_to_end(64 * 1024).await.context("read")?;
     println!("echoed back: {:?}", String::from_utf8_lossy(&reply));
 
     conn.close(0u32.into(), b"done");

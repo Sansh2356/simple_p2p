@@ -86,7 +86,6 @@
 //     }
 // }
 
-
 #![allow(unused)]
 use clap::Parser;
 use libp2p::swarm::DialError;
@@ -113,7 +112,6 @@ struct Opt {
     // /// Address of the server where want to connect to.
     // #[arg(short = 'a', long)]
     // server_address: Multiaddr,
-
     /// Probe interval in seconds.
     #[arg(short = 't', long, default_value = "2")]
     probe_interval: u64,
@@ -138,9 +136,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_behaviour(|key| Behaviour::new(key.public(), opt.probe_interval))?
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(10)))
         .build();
-    swarm.listen_on(
-        "/ip4/0.0.0.0/tcp/8283".parse::<Multiaddr>().unwrap()
-    )?;
+    swarm.listen_on("/ip4/0.0.0.0/tcp/8283".parse::<Multiaddr>().unwrap())?;
     // swarm.dial(
     //     DialOpts::unknown_peer_id()
     //         .address(opt.server_address)
@@ -149,7 +145,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // autonat::v2::client::Behaviour::default()
     // DialBackResponse
     // swarm.behaviour_mut().autonat.add_server(peer, address);
-    println!("{:?}",swarm.local_peer_id());
+    println!("{:?}", swarm.local_peer_id());
     loop {
         match swarm.select_next_some().await {
             // SwarmEvent::Dialing { peer_id, connection_id }=>{

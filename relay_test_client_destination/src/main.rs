@@ -150,7 +150,7 @@ async fn main() {
         relay_peer_id,
         false,
     ));
-    println!("CURRENT SWARM LOCAL PEERID {:?}",swarm.local_peer_id());
+    println!("CURRENT SWARM LOCAL PEERID {:?}", swarm.local_peer_id());
     loop {
         match swarm.select_next_some().await {
             SwarmEvent::NewListenAddr {

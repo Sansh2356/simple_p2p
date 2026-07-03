@@ -180,4 +180,3 @@ fn generate_ed25519(secret_key_seed: u8) -> identity::Keypair {
 
     identity::Keypair::ed25519_from_bytes(bytes).expect("only errors on wrong length")
 }
-

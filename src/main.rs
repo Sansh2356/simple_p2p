@@ -1,4 +1,3 @@
-
 //COMPILING THE CAPNP file .
 // pub mod client;
 // use std::{
@@ -20,8 +19,6 @@
 //     cmd.run().expect("capnpc compilation failed");
 
 // }
-
-
 
 pub mod client;
 pub mod addressbook {

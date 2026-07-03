@@ -538,6 +538,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "autonat_client"
+version = "0.1.0"
+dependencies = [
+ "clap 4.5.60",
+ "futures",
+ "libp2p",
+ "rand 0.8.5",
+ "tokio",
+ "tracing",
+ "tracing-subscriber 0.3.19",
+]
+
+[[package]]
 name = "autonat_server"
 version = "0.1.0"
 dependencies = [
@@ -3189,7 +3202,7 @@ name = "iroh-connect"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "iroh",
  "tokio",
  "tracing-subscriber 0.3.19",
@@ -3297,7 +3310,7 @@ name = "iroh-tor"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-tor-transport",
@@ -3311,7 +3324,7 @@ version = "0.1.0"
 source = "git+https://github.com/n0-computer/iroh-tor-transport?rev=55b19c567f63e265d206f5a40369ab9597ce602e#55b19c567f63e265d206f5a40369ab9597ce602e"
 dependencies = [
  "bytes",
- "clap 4.5.39",
+ "clap 4.5.60",
  "data-encoding",
  "iroh",
  "iroh-base",

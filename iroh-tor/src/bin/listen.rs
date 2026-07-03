@@ -85,10 +85,7 @@ async fn main() -> Result<()> {
                 Ok(streams) => streams,
                 Err(_) => break,
             };
-            let msg = recv_stream
-                .read_to_end(64 * 1024)
-                .await
-                .context("read")?;
+            let msg = recv_stream.read_to_end(64 * 1024).await.context("read")?;
             println!(
                 "received {} bytes: {:?}",
                 msg.len(),

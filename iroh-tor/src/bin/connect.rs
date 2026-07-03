@@ -50,7 +50,10 @@ async fn main() -> Result<()> {
         .bind()
         .await?;
 
-    println!("connecting to {} over Tor (this can take a while)...", args.endpoint_id);
+    println!(
+        "connecting to {} over Tor (this can take a while)...",
+        args.endpoint_id
+    );
 
     let conn = ep.connect(args.endpoint_id, ALPN).await?;
     let (mut send_stream, mut recv_stream) = conn.open_bi().await.context("open bi")?;
@@ -62,10 +65,7 @@ async fn main() -> Result<()> {
     send_stream.finish().context("finish")?;
     println!("sent: {:?}", args.message);
 
-    let reply = recv_stream
-        .read_to_end(64 * 1024)
-        .await
-        .context("read")?;
+    let reply = recv_stream.read_to_end(64 * 1024).await.context("read")?;
     println!("echoed back: {:?}", String::from_utf8_lossy(&reply));
 
     conn.close(0u32.into(), b"done");

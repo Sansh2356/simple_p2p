@@ -207,7 +207,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             SwarmEvent::NewListenAddr { address, .. } => {
                 println!("Local node is listening on {address}");
             }
-            
+
             _ => {println!("{:?}",event);}
         }
 

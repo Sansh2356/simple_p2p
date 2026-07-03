@@ -16,7 +16,9 @@ use rand::rngs::OsRng;
 #[derive(Debug, Parser)]
 #[command(name = "libp2p autonatv2 server")]
 struct Opt {
-    #[arg(short, long, default_value_t = 0)]
+    /// TCP port to listen on. Clients dial this across subnets, so give it a
+    /// stable, publicly reachable value.
+    #[arg(short, long, default_value_t = 8888)]
     listen_port: u16,
 }
 
@@ -37,7 +39,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
 
-    swarm.listen_on("/ip4/0.0.0.0/tcp/8888".parse().unwrap());
+    // Clients need this to build the `/p2p/<peer-id>` suffix of the server addr.
+    println!("Local PeerID: {}", swarm.local_peer_id());
+
+    swarm.listen_on(
+        Multiaddr::empty()
+            .with(Ipv4Addr::UNSPECIFIED.into())
+            .with(Protocol::Tcp(opt.listen_port)),
+    )?;
 
     loop {
         match swarm.select_next_some().await {
