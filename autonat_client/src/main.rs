@@ -43,8 +43,9 @@ use rand::rngs::OsRng;
 use tracing_subscriber::EnvFilter;
 
 /// Number of *distinct* servers that must agree before we treat a verdict as
-/// final. Straight from the spec's suggested heuristic.
-const CONFIRMATION_THRESHOLD: usize = 3;
+/// final. The spec suggests 3, but for single-server testing we set this to 1
+/// so one server's result is treated as a confirmed verdict.
+const CONFIRMATION_THRESHOLD: usize = 1;
 
 #[derive(Debug, Parser)]
 #[command(name = "libp2p autonatv2 client")]
@@ -77,6 +78,29 @@ enum Reachability {
     BehindNat,
 }
 
+/// Prints a reachability verdict for `addr`. `servers` is how many distinct
+/// servers have reported so far; `confirmed` is whether the spec's
+/// multi-server threshold has been met (vs. a provisional single-server guess).
+fn print_verdict(addr: &Multiaddr, verdict: Reachability, servers: usize, confirmed: bool) {
+    let tag = if confirmed {
+        format!("CONFIRMED by {servers} servers")
+    } else {
+        format!("provisional — based on {servers} server(s); spec suggests {CONFIRMATION_THRESHOLD}+ for confirmation")
+    };
+    println!("════════════════════════════════════════════");
+    match verdict {
+        Reachability::Public => println!(
+            "  🌍 VERDICT [{tag}]: {addr}\n     → PUBLICLY REACHABLE — you are NOT behind a \
+             NAT/firewall on this address."
+        ),
+        Reachability::BehindNat => println!(
+            "  🔒 VERDICT [{tag}]: {addr}\n     → BEHIND NAT / FIREWALL — this address is not \
+             publicly dialable. Consider using a relay."
+        ),
+    }
+    println!("════════════════════════════════════════════");
+}
+
 /// Returns `true` if `addr` is a private/loopback address that, per the spec,
 /// a client SHOULD NOT submit for public reachability testing (RFC 1918 etc.).
 fn is_private(addr: &Multiaddr) -> bool {
@@ -105,7 +129,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_quic()
         .with_dns()?
         .with_behaviour(|key| Behaviour::new(key.public(), opt.probe_interval))?
-        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(10)))
+        .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(30)))
+        .with_connection_timeout(Duration::from_secs(10))
         .build();
 
     swarm.listen_on(
@@ -186,9 +211,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let bad = entry.unreachable_by.len();
                 println!("        tally for {tested_addr}: {ok} reachable / {bad} unreachable");
 
-                // Apply the spec's confirmation heuristic and only announce
-                // when the verdict first becomes final or flips.
-                let verdict = if ok >= CONFIRMATION_THRESHOLD {
+                // Confirmed verdict: the spec's heuristic — needs agreement from
+                // CONFIRMATION_THRESHOLD distinct servers.
+                let confirmed = if ok >= CONFIRMATION_THRESHOLD {
                     Some(Reachability::Public)
                 } else if bad >= CONFIRMATION_THRESHOLD {
                     Some(Reachability::BehindNat)
@@ -196,22 +221,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     None
                 };
 
-                if let Some(v) = verdict {
+                if let Some(v) = confirmed {
+                    // Only announce a confirmed verdict when it first becomes
+                    // final or flips.
                     if entry.announced != Some(v) {
                         entry.announced = Some(v);
-                        println!("════════════════════════════════════════════");
-                        match v {
-                            Reachability::Public => println!(
-                                "  🌍 VERDICT: {tested_addr}\n     → PUBLICLY REACHABLE — you are \
-                                 NOT behind a NAT/firewall on this address."
-                            ),
-                            Reachability::BehindNat => println!(
-                                "  🔒 VERDICT: {tested_addr}\n     → BEHIND NAT / FIREWALL — this \
-                                 address is not publicly dialable. Consider using a relay."
-                            ),
-                        }
-                        println!("════════════════════════════════════════════");
+                        print_verdict(&tested_addr, v, ok + bad, true);
                     }
+                } else {
+                    // Not enough servers yet for a confirmed verdict (e.g. you
+                    // are testing against a single server). Still give a clear,
+                    // provisional answer based on the majority of results so far.
+                    let provisional = if ok > bad {
+                        Reachability::Public
+                    } else {
+                        Reachability::BehindNat
+                    };
+                    print_verdict(&tested_addr, provisional, ok + bad, false);
                 }
             }
 

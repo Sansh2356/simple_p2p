@@ -83,6 +83,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_dns()?
         .with_behaviour(|key| Behaviour::new(key.public()))?
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
+        // Bound every dial (including AutoNAT dial-backs) so that probing a
+        // NATed/firewalled client address fails in ~10s instead of hanging on
+        // TCP retransmits for tens of seconds. This makes the "not reachable"
+        // verdict surface quickly rather than flooding the log with retries.
+        .with_connection_timeout(Duration::from_secs(10))
         .build();
 
     swarm.listen_on(
@@ -146,15 +151,50 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 println!("──────────────────────────────────────────────");
             }
 
-            SwarmEvent::Behaviour(BehaviourEvent::Identify(event)) => {
-                println!("[identify] {event:?}");
+            // Identify tells us the client's observed (public) address and its
+            // advertised listen addresses — useful context for what we dial back.
+            SwarmEvent::Behaviour(BehaviourEvent::Identify(identify::Event::Received {
+                peer_id,
+                info,
+                ..
+            })) => {
+                println!(
+                    "[identify] {peer_id} observed_addr={} listen_addrs={:?}",
+                    info.observed_addr, info.listen_addrs
+                );
             }
+            SwarmEvent::Behaviour(BehaviourEvent::Identify(_)) => {}
 
+            SwarmEvent::IncomingConnection { send_back_addr, .. } => {
+                println!("[conn] Incoming connection from {send_back_addr}");
+            }
             SwarmEvent::ConnectionEstablished { peer_id, .. } => {
                 println!("[conn] Connection established with {peer_id}");
             }
 
-            e => println!("[swarm] {e:?}"),
+            // Start of a dial-back attempt to a client we are testing. Kept quiet
+            // (one line) so the eventual verdict block stands out.
+            SwarmEvent::Dialing {
+                peer_id: Some(peer),
+                ..
+            } => {
+                println!("[dial-back] → attempting to reach client {peer} on a fresh connection…");
+            }
+
+            // A dial-back that did not complete. For a NATed/firewalled client
+            // this is expected: the address is not publicly dialable. The
+            // authoritative verdict is still the `[probe]` block emitted by the
+            // AutoNAT behaviour once it gives up.
+            SwarmEvent::OutgoingConnectionError { peer_id, error, .. } => {
+                println!(
+                    "[dial-back] ✗ could not reach {peer_id:?}: {error} \
+                     (address not publicly reachable — client likely behind NAT)"
+                );
+            }
+
+            // Everything else (listener housekeeping, external-addr candidates,
+            // connection closes, …) is not essential to the reachability story.
+            _ => {}
         }
     }
 }
