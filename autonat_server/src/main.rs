@@ -84,10 +84,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_behaviour(|key| Behaviour::new(key.public()))?
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         // Bound every dial (including AutoNAT dial-backs) so that probing a
-        // NATed/firewalled client address fails in ~10s instead of hanging on
-        // TCP retransmits for tens of seconds. This makes the "not reachable"
-        // verdict surface quickly rather than flooding the log with retries.
-        .with_connection_timeout(Duration::from_secs(10))
+        // NATed/firewalled client address fails quickly instead of hanging on
+        // TCP retransmits for tens of seconds.
+        //
+        // This MUST be well under the client's per-probe timeout (10s, see
+        // libp2p-autonat dial_request handler). Otherwise the dial-back and the
+        // client's own timer expire together: the client gives up and re-probes
+        // at the exact moment we're ready to report failure, so it never
+        // receives our E_DIAL_ERROR and never prints a verdict. 5s leaves ample
+        // room for the response to travel back within the client's budget.
+        .with_connection_timeout(Duration::from_secs(5))
         .build();
 
     swarm.listen_on(
