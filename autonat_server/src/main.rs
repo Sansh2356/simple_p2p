@@ -1,6 +1,5 @@
 use std::{error::Error, net::Ipv4Addr, time::Duration};
-
-// use cfg_if::cfg_if;
+use cfg_if::cfg_if;
 use clap::Parser;
 use libp2p::{
     Multiaddr, SwarmBuilder, autonat,
@@ -16,14 +15,42 @@ use rand::rngs::OsRng;
 #[derive(Debug, Parser)]
 #[command(name = "libp2p autonatv2 server")]
 struct Opt {
-    /// TCP port to listen on. Clients dial this across subnets, so give it a
-    /// stable, publicly reachable value.
-    #[arg(short, long, default_value_t = 8888)]
+    #[arg(short, long, default_value_t = 0)]
     listen_port: u16,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    cfg_if! {
+        if #[cfg(feature = "jaeger")] {
+            use opentelemetry::trace::TracerProvider as _;
+            use opentelemetry::KeyValue;
+            use opentelemetry_otlp::SpanExporter;
+            use opentelemetry_sdk::{runtime, trace::TracerProvider};
+            use tracing_subscriber::layer::SubscriberExt;
+
+            let provider = TracerProvider::builder()
+                .with_batch_exporter(
+                    SpanExporter::builder().with_tonic().build()?,
+                    runtime::Tokio,
+                )
+                .with_resource(opentelemetry_sdk::Resource::new(vec![KeyValue::new(
+                    "service.name",
+                    "autonatv2",
+                )]))
+                .build();
+            let telemetry = tracing_opentelemetry::layer()
+                .with_tracer(provider.tracer("autonatv2"));
+            let subscriber = tracing_subscriber::Registry::default()
+                .with(telemetry);
+        } else {
+            let subscriber = tracing_subscriber::fmt()
+                .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+                .finish();
+        }
+    }
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
     let opt = Opt::parse();
 
     let mut swarm = SwarmBuilder::with_new_identity()
@@ -39,12 +66,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
         .build();
 
-    // Clients need this to build the `/p2p/<peer-id>` suffix of the server addr.
-    println!("Local PeerID: {}", swarm.local_peer_id());
-
     swarm.listen_on(
         Multiaddr::empty()
-            .with(Ipv4Addr::UNSPECIFIED.into())
+            .with(Protocol::Ip4(Ipv4Addr::UNSPECIFIED))
             .with(Protocol::Tcp(opt.listen_port)),
     )?;
 
