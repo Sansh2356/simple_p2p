@@ -1,4 +1,23 @@
+//! AutoNAT v2 **server**.
+//!
+//! Implements the server role of the AutoNAT v2 spec (`autonat-v2.md`):
+//!
+//!  * Listens on `/libp2p/autonat/2/dial-request` for `DialRequest` messages.
+//!  * Selects the first address it is willing to dial from the client's
+//!    priority-ordered list and dials back over `/libp2p/autonat/2/dial-back`
+//!    with the request nonce.
+//!  * When the selected address has a different IP than the client's observed
+//!    IP, runs the amplification-attack-prevention handshake, asking the client
+//!    to transfer 30k-100k bytes before dialing (see spec §Amplification Attack
+//!    Prevention).
+//!
+//! All of that protocol machinery lives inside `autonat::v2::server::Behaviour`.
+//! This binary drives the swarm and turns each completed probe into a clear log
+//! line describing whether the *client* address we tested is publicly reachable
+//! (i.e. the client is NOT behind a NAT on that address) or not.
+
 use std::{error::Error, net::Ipv4Addr, time::Duration};
+
 use cfg_if::cfg_if;
 use clap::Parser;
 use libp2p::{
@@ -72,11 +91,70 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .with(Protocol::Tcp(opt.listen_port)),
     )?;
 
+    println!("== AutoNAT v2 SERVER ==");
+    println!("Local peer id: {}", swarm.local_peer_id());
+
     loop {
         match swarm.select_next_some().await {
-            SwarmEvent::NewListenAddr { address, .. } => println!("Listening on {address:?}"),
-            SwarmEvent::Behaviour(event) => println!("{event:?}"),
-            e => println!("{e:?}"),
+            SwarmEvent::NewListenAddr { address, .. } => {
+                println!("[listen] Ready to serve dial-requests on {address}");
+            }
+
+            // A client asked us to verify one of its addresses. The behaviour
+            // has already selected an address, (optionally) run amplification
+            // prevention, dialed back with the nonce, and produced a result.
+            SwarmEvent::Behaviour(BehaviourEvent::Autonat(autonat::v2::server::Event {
+                all_addrs,
+                tested_addr,
+                client,
+                data_amount,
+                result,
+            })) => {
+                println!("──────────────────────────────────────────────");
+                println!("[probe] Client {client} requested a reachability test");
+                println!("        candidate addresses ({}): {all_addrs:?}", all_addrs.len());
+                println!("        selected & dialed:  {tested_addr}");
+                if data_amount > 0 {
+                    // Non-zero only when the tested IP differs from the client's
+                    // observed IP, i.e. amplification-attack prevention kicked in.
+                    println!(
+                        "        amplification guard: required client to send {data_amount} bytes \
+                         before dialing (spec §Amplification Attack Prevention)"
+                    );
+                }
+                match result {
+                    Ok(()) => {
+                        // Dial-back succeeded and the nonce came back: the client
+                        // accepts inbound connections on this address.
+                        println!(
+                            "        RESULT: ✅ REACHABLE — dial-back succeeded, nonce verified."
+                        );
+                        println!(
+                            "        VERDICT: client is PUBLICLY REACHABLE on {tested_addr} \
+                             (NOT behind a NAT/firewall for this address)."
+                        );
+                    }
+                    Err(e) => {
+                        // We could not complete the dial-back to the client.
+                        println!("        RESULT: ❌ NOT REACHABLE — dial-back failed: {e}");
+                        println!(
+                            "        VERDICT: client appears to be BEHIND A NAT/FIREWALL on \
+                             {tested_addr} (address not publicly dialable)."
+                        );
+                    }
+                }
+                println!("──────────────────────────────────────────────");
+            }
+
+            SwarmEvent::Behaviour(BehaviourEvent::Identify(event)) => {
+                println!("[identify] {event:?}");
+            }
+
+            SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                println!("[conn] Connection established with {peer_id}");
+            }
+
+            e => println!("[swarm] {e:?}"),
         }
     }
 }
