@@ -872,23 +872,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "capnp-futures"
-version = "0.25.2"
+name = "capnp"
+version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73b69dfddccc57844f9a90f9d72b44b97c326914851ea94fb7da40ef9cad6e8d"
+checksum = "58ddce707ad9fb2ae92770523cd0e17a0cf34e79b66a9ca4db2dd993535fe718"
 dependencies = [
- "capnp 0.25.4",
+ "embedded-io 0.7.1",
+]
+
+[[package]]
+name = "capnp-futures"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2a0655816a8c19628e54f9f9c373549e4a7166effd0cf92c3d05e3426e85d4e"
+dependencies = [
+ "capnp 0.26.2",
  "futures-channel",
  "futures-util",
 ]
 
 [[package]]
 name = "capnp-rpc"
-version = "0.25.0"
+version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07ccca6d26009f4d6c12b741994f33b421da613b5dcf461508e236b53ef862f1"
+checksum = "44dc4aa9dc0f725ef11deb423cea95d9b64c2e0692d0621e4334cc463fd69d95"
 dependencies = [
- "capnp 0.25.4",
+ "capnp 0.26.2",
  "capnp-futures",
  "futures",
 ]
@@ -1536,7 +1545,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccc2776f0c61eca1ca32528f85548abd1a4be8fb53d1b21c013e4f18da1e7090"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 2.0.118",
 ]
 
 [[package]]
